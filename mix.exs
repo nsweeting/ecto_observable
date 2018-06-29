@@ -44,7 +44,7 @@ defmodule EctoObserver.MixProject do
 
   defp description do
     """
-    Ecto.Observer brings observable functionality to an Ecto.Repo.
+    Ecto.Observable brings observable functionality to an Ecto.Repo.
     """
   end
 
@@ -53,7 +53,7 @@ defmodule EctoObserver.MixProject do
       files: ["lib", "mix.exs", "README*"],
       maintainers: ["Nicholas Sweeting"],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/nsweeting/ecto_observer"}
+      links: %{"GitHub" => "https://github.com/nsweeting/ecto_observable"}
     ]
   end
 

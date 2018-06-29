@@ -1,21 +1,24 @@
-# Ecto.Observer
+# Ecto.Observable
 
-`Ecto.Observer` adds "observable" functionality to `Ecto.Repo`.
+[![Build Status](https://travis-ci.org/nsweeting/ecto_observable.svg?branch=master)](https://travis-ci.org/nsweeting/ecto_observable)
+[![Ecto.Observable Version](https://img.shields.io/hexpm/v/ecto_observable.svg)](https://hex.pm/packages/ecto_observable)
+
+`Ecto.Observable` adds "observable" functionality to `Ecto.Repo`.
 
 ## Installation
 
-The package can be installed by adding `ecto_observer` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `ecto_observable` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:ecto_observer, "~> 0.1.0"}
+    {:ecto_observable, "~> 0.1.0"}
   ]
 end
 ```
 ## Documentation
 
-See [HexDocs](https://hexdocs.pm/ecto_observer) for additional documentation.
+See [HexDocs](https://hexdocs.pm/ecto_observable) for additional documentation.
 
 ## Getting Started
 
