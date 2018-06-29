@@ -13,6 +13,7 @@ defmodule EctoObserver.MixProject do
       description: description(),
       package: package(),
       start_permanent: Mix.env() == :prod,
+      name: "Ecto.Observable",
       docs: docs(),
       deps: deps()
     ]
@@ -60,8 +61,8 @@ defmodule EctoObserver.MixProject do
 
   defp docs do
     [
-      extras: ["README.md"],
       main: "readme",
+      extras: ["README.md"],
       source_url: "https://github.com/nsweeting/ecto_observable"
     ]
   end
