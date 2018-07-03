@@ -5,10 +5,9 @@ defmodule Observable.Repo do
   Observable functionality is defined as the ability to hook into the lifecyle
   of a struct to perform some kind of work based on the repo action performed.
 
-  Lets start of with an simple example. Lets say we have a `Post` schema.
-  Each post can have many topics. Users can subscribe to many topics. Whenever
-  a post is created for various topics, we are responsible for informing the
-  subscribed users.
+  Lets start of with an simple example. Lets say we have a `Post` schema. Each
+  post can have many topics. Users can subscribe to topics. Whenever a post is created,
+  we are responsible for informing the subscribed users.
 
   Given the above, lets setup our new "observable" repo.
 
