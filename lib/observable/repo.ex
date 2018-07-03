@@ -39,7 +39,7 @@ defmodule Observable.Repo do
 
       defmodule Post do
         use Ecto.Schema
-        use Observable, :observer
+        use Observable, :notifier
 
         schema "posts" do
           field(:title, :string)
