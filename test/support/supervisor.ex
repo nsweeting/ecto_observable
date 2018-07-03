@@ -1,4 +1,4 @@
-defmodule Ecto.Observable.TestSupervisor do
+defmodule Observable.TestSupervisor do
   use Supervisor
 
   def start_link(arg \\ []) do
@@ -8,7 +8,7 @@ defmodule Ecto.Observable.TestSupervisor do
   @impl true
   def init(_arg) do
     children = [
-      {Ecto.Observable.TestRepo, []}
+      {Observable.TestRepo, []}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

@@ -12,7 +12,7 @@ The package can be installed by adding `ecto_observable` to your list of depende
 ```elixir
 def deps do
   [
-    {:ecto_observable, "~> 0.1.0"}
+    {:ecto_observable, "~> 0.2.0"}
   ]
 end
 ```
@@ -26,54 +26,59 @@ Lets say we have a `Post` schema. Each post can have many topics. Users can
 subscribe to a given topic. Whenever a post is created for a given topic, we
 are responsible for informing the subscribed users.
 
-
 Given the above, lets setup our new "observable" repo.
 
 ```elixir
 defmodule Repo do
   use Ecto.Repo, otp_app: :my_app
-  use Ecto.Observable
-
-  @observers [SubscribersObserver]
-
-  def init(_args, config) do
-    init_observable(@observers)
-
-    {:ok, config}
-  end
+  use Observable.Repo
 end
 ```
 
-We have defined our repo as normal - but with a few additions. First, we must
-`use Ecto.Observable` to bring in the required observable functionality. Second,
-from within our `Ecto.Repo.init/2` callback, we must invoke the `Ecto.Observable.init_observable/1`
-function to setup our repo with the observers we want.
+We have defined our repo as normal - but with the addition of `use Observable.Repo`
+to bring in the required observable functionality.
 
 Lets create our new observer now.
 
 ```elixir
 defmodule SubscribersObserver do
-  use Ecto.Observer
-
-  def observations do
-    [
-      {Post, :insert},
-      {Post, :update} # Defined for the sake of example. Ignore me!
-    ]
-  end
+  use Observable, :observer
 
   # Lets ignore posts that dont have any topics.
-  def handle_insert(%Post{topics: []}) do
+  def handle_notify({:insert, %Post{topics: []}}) do
     :ok
   end
 
-  def handle_insert(%Post{topics: topics}) do
+  # Lets ignore posts that dont have any topics.
+  def handle_notify({:insert, %Post{topics: topics}}) do
     # Do work required to inform subscribed users.
   end
 
   # Defined for the sake of example. Ignore me!
-  def handle_update(old_post, new_post) do
+  def handle_notify({:update, [old_post, new_post]}) do
     :ok
+  end
+end
+```
+
+Now that we have our observer set up, lets modify our Post schema to support
+notifying our observers.
+
+```elixir
+
+defmodule Post do
+  use Ecto.Schema
+  use Observable, :observer
+
+  schema "posts" do
+    field(:title, :string)
+    field(:body, :string)
+    field(:topics, {:array, :string}, default: [])
+  end
+
+  observations do
+    on_action(:insert, SubscribersObserver)
+    on_action(:update, SubscribersObserver)
   end
 end
 ```

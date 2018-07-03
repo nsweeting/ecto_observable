@@ -1,4 +1,4 @@
-defmodule Ecto.Observable.TestCase do
+defmodule Observable.TestCase do
   use ExUnit.CaseTemplate
 
   using(opts) do
@@ -8,12 +8,12 @@ defmodule Ecto.Observable.TestCase do
   end
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Ecto.Observable.TestRepo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Observable.TestRepo)
   end
 end
 
-Ecto.Observable.TestSupervisor.start_link()
+Observable.TestSupervisor.start_link()
 
-Ecto.Adapters.SQL.Sandbox.mode(Ecto.Observable.TestRepo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Observable.TestRepo, :manual)
 
 ExUnit.start()

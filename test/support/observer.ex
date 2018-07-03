@@ -1,37 +1,27 @@
-defmodule Ecto.Observable.TestObserver do
+defmodule Observable.TestObserver do
   defmacro __using__(_opts) do
     quote do
-      use Ecto.Observer
+      use Observable, :observer
 
-      def handle_insert(struct) do
+      def handle_notify({:insert, struct}) do
         send(self(), {__MODULE__, :insert, struct})
       end
 
-      def handle_update(old_struct, new_struct) do
+      def handle_notify({:update, [old_struct, new_struct]}) do
         send(self(), {__MODULE__, :update, old_struct, new_struct})
       end
 
-      def handle_delete(struct) do
+      def handle_notify({:delete, struct}) do
         send(self(), {__MODULE__, :delete, struct})
       end
     end
   end
 end
 
-defmodule Ecto.Observable.TestObserverOne do
-  use Ecto.Observable.TestObserver
+defmodule Observable.TestObserverOne do
+  use Observable.TestObserver
 end
 
-defmodule Ecto.Observable.TestObserverTwo do
-  use Ecto.Observable.TestObserver
-end
-
-defmodule Ecto.Observable.TestObserverThree do
-  use Ecto.Observable.TestObserver
-
-  def observations do
-    [
-      {Ecto.Observable.Post, :insert}
-    ]
-  end
+defmodule Observable.TestObserverTwo do
+  use Observable.TestObserver
 end
