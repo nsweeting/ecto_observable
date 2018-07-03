@@ -22,9 +22,7 @@ See [HexDocs](https://hexdocs.pm/ecto_observable) for additional documentation.
 
 ## Getting Started
 
-Lets start of with an simple example. Lets say we have a `Post` schema.
-Each post can have many topics. Users can subscribe to many topics. Whenever
-a post is created for various topics, we are responsible for informing the
+Lets say we have a `Post` schema. Each post can have many topics. Users can subscribe to many topics. Whenever a post is created for various topics, we are responsible for informing the
 subscribed users.
 
 Given the above, lets setup our new "observable" repo.
