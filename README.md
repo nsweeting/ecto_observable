@@ -1,9 +1,9 @@
-# Ecto.Observable
+# Ecto Observable
 
 [![Build Status](https://travis-ci.org/nsweeting/ecto_observable.svg?branch=master)](https://travis-ci.org/nsweeting/ecto_observable)
 [![Ecto.Observable Version](https://img.shields.io/hexpm/v/ecto_observable.svg)](https://hex.pm/packages/ecto_observable)
 
-`Ecto.Observable` adds "observable" functionality to `Ecto.Repo`.
+Ecto Observable adds "observable" functionality to `Ecto.Repo`.
 
 ## Installation
 
