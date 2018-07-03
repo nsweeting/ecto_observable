@@ -47,7 +47,6 @@ defmodule SubscribersObserver do
     :ok
   end
 
-  # Lets ignore posts that dont have any topics.
   def handle_notify({:insert, %Post{topics: topics}}) do
     # Do work required to inform subscribed users.
   end
