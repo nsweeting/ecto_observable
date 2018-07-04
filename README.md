@@ -12,7 +12,7 @@ The package can be installed by adding `ecto_observable` to your list of depende
 ```elixir
 def deps do
   [
-    {:ecto_observable, "~> 0.2.0"}
+    {:ecto_observable, "~> 0.3.0"}
   ]
 end
 ```
