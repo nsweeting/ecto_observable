@@ -1,7 +1,7 @@
 defmodule EctoObserver.MixProject do
   use Mix.Project
 
-  @version "0.3.0"
+  @version "0.3.1"
 
   def project do
     [
@@ -13,7 +13,7 @@ defmodule EctoObserver.MixProject do
       description: description(),
       package: package(),
       start_permanent: Mix.env() == :prod,
-      name: "Ecto.Observable",
+      name: "Ecto Observable",
       docs: docs(),
       deps: deps()
     ]
