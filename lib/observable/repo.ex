@@ -109,8 +109,7 @@ defmodule Observable.Repo do
   Inserts a struct defined via `Ecto.Schema` or a changeset and informs observers.
 
   Upon success, the newly insterted struct is passed to any observer
-  that was assigned to observe the `:insert` action for the schema. The operation
-  is wrapped in a transaction and will rollback if any observer raises an error.
+  that was assigned to observe the `:insert` action for the schema.
 
   This will return whatever response that `c:Ecto.Repo.insert/2` returns. Please
   see its documentation for further details.
@@ -133,8 +132,7 @@ defmodule Observable.Repo do
 
   Upon success, the old struct and updated struct are passed in list form -
   `[old_struct, updated_struct]` - to any observer that was assigned to observe
-  the `:update` action for the schema. The operation is wrapped in a transaction
-  and will rollback if any observer raises an error.
+  the `:update` action for the schema.
 
   This will return whatever response that `c:Ecto.Repo.update/2` returns. Please
   see its documentation for further details.
@@ -146,14 +144,13 @@ defmodule Observable.Repo do
   Same as `c:update_and_notify/2` but returns the struct or raises if the changeset is invalid.
   """
   @callback update_and_notify!(changeset :: Ecto.Changeset.t(), opts :: Keyword.t()) ::
-              {:ok, Ecto.Schema.t()} | no_return
+              Ecto.Schema.t() | no_return
 
   @doc """
   Deletes a struct using its primary key and informs observers.
 
   Upon success, the deleted struct is passed to any observer
-  that was assigned to observe the `:delete` action for the schema. The operation
-  is wrapped in a transaction and will rollback if any observer raises an error.
+  that was assigned to observe the `:delete` action for the schema.
 
   This will return whatever response that `c:Ecto.Repo.delete/2` returns. Please
   see its documentation for further details.
@@ -169,73 +166,49 @@ defmodule Observable.Repo do
   @callback delete_and_notify!(
               struct_or_changeset :: Ecto.Schema.t() | Ecto.Changeset.t(),
               opts :: Keyword.t()
-            ) :: {:ok, Ecto.Schema.t()} | no_return
+            ) :: Ecto.Schema.t() | no_return
 
   defmacro __using__(_opts) do
     quote do
       @behaviour Observable.Repo
 
       def insert_and_notify(struct, opts \\ []) do
-        fn ->
-          with {:ok, struct} <- insert(struct, opts) do
-            Observable.notify(struct, :insert)
-            {:ok, struct}
-          end
+        with {:ok, struct} <- insert(struct, opts) do
+          Observable.notify(struct, :insert)
+          {:ok, struct}
         end
-        |> transaction()
-        |> elem(1)
       end
 
       def insert_and_notify!(struct, opts \\ []) do
-        fn ->
-          struct = insert!(struct, opts)
-          Observable.notify(struct, :insert)
-          struct
-        end
-        |> transaction()
-        |> elem(1)
+        struct = insert!(struct, opts)
+        Observable.notify(struct, :insert)
+        struct
       end
 
       def update_and_notify(struct, opts \\ []) do
-        fn ->
-          with {:ok, new_struct} <- update(struct, opts) do
-            Observable.notify([struct.data, new_struct], :update)
-            {:ok, new_struct}
-          end
+        with {:ok, new_struct} <- update(struct, opts) do
+          Observable.notify([struct.data, new_struct], :update)
+          {:ok, new_struct}
         end
-        |> transaction()
-        |> elem(1)
       end
 
       def update_and_notify!(struct, opts \\ []) do
-        fn ->
-          new_struct = update!(struct, opts)
-          Observable.notify([struct.data, new_struct], :update)
-          new_struct
-        end
-        |> transaction()
-        |> elem(1)
+        new_struct = update!(struct, opts)
+        Observable.notify([struct.data, new_struct], :update)
+        new_struct
       end
 
       def delete_and_notify(struct, opts \\ []) do
-        fn ->
-          with {:ok, struct} <- delete(struct, opts) do
-            Observable.notify(struct, :delete)
-            {:ok, struct}
-          end
+        with {:ok, struct} <- delete(struct, opts) do
+          Observable.notify(struct, :delete)
+          {:ok, struct}
         end
-        |> transaction()
-        |> elem(1)
       end
 
       def delete_and_notify!(struct, opts \\ []) do
-        fn ->
-          struct = delete!(struct, opts)
-          Observable.notify(struct, :delete)
-          struct
-        end
-        |> transaction()
-        |> elem(1)
+        struct = delete!(struct, opts)
+        Observable.notify(struct, :delete)
+        struct
       end
     end
   end
