@@ -1,7 +1,7 @@
 defmodule EctoObserver.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.3.0"
 
   def project do
     [
@@ -70,7 +70,7 @@ defmodule EctoObserver.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:observable, "~> 0.1.0"},
+      {:observable, "~> 0.2.0"},
       {:ecto, "~> 2.1", only: [:dev, :test]},
       {:postgrex, "~> 0.13.0", only: :test},
       {:ex_doc, ">= 0.0.0", only: :dev}

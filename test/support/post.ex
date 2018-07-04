@@ -7,11 +7,8 @@ defmodule Observable.Post do
   end
 
   observations do
-    on_action(:insert, Observable.TestObserverOne)
-    on_action(:insert, Observable.TestObserverTwo)
-    on_action(:update, Observable.TestObserverOne)
-    on_action(:update, Observable.TestObserverTwo)
-    on_action(:delete, Observable.TestObserverOne)
-    on_action(:delete, Observable.TestObserverTwo)
+    action(:insert, [Observable.TestObserverOne, Observable.TestObserverTwo])
+    action(:update, [Observable.TestObserverOne, Observable.TestObserverTwo])
+    action(:delete, [Observable.TestObserverOne, Observable.TestObserverTwo])
   end
 end

@@ -55,6 +55,11 @@ defmodule SubscribersObserver do
   def handle_notify({:update, [old_post, new_post]}) do
     :ok
   end
+
+  # Defined for the sake of example. Ignore me!
+  def handle_notify({:delete, post}) do
+    :ok
+  end
 end
 ```
 
@@ -74,8 +79,9 @@ defmodule Post do
   end
 
   observations do
-    on_action(:insert, SubscribersObserver)
-    on_action(:update, SubscribersObserver)
+    action(:insert, [SubscribersObserver])
+    action(:update, [SubscribersObserver])
+    action(:delete, [OtherObserverOne, OtherObserverTwo]) # Defined for the sake of example.
   end
 end
 ```
@@ -92,3 +98,17 @@ end
 ```
 
 Our users will now be informed of any new posts with topics they are interested in!
+
+The same behaviour can be replicated for `:update` and `:delete` actions.
+
+```elixir
+Repo.update_and_notify(post)
+Repo.delete_and_notify(post)
+```
+
+Each of the new observer-based actions also has equivalent bang function available
+that will raise on error.
+
+```elixir
+Repo.insert_and_notify!(post)
+```

@@ -48,9 +48,16 @@ defmodule Observable.Repo do
         end
 
         observations do
-          on_action(:insert, SubscribersObserver)
+          action(:insert, [SubscribersObserver])
         end
       end
+
+  The actions must be either `:insert`, `:update`, or `:delete`. We can add as
+  many observers to a given action as needed. Simply add them to the list. For
+  example, we can define an observation for a `:delete` action - which will notify
+  2 observers:
+
+      action(:delete, [ObserverOne, ObserverTwo])
 
   Now that we are starting to use "observable" behaviour, we must modify the way
   in which we insert posts with our repo.
@@ -82,8 +89,8 @@ defmodule Observable.Repo do
   Now, lets modify our schema to reflect the updates to our observer.
 
         observations do
-          on_action(:insert, SubscribersObserver)
-          on_action(:update, SubscribersObserver)
+          action(:insert, [SubscribersObserver])
+          action(:update, [SubscribersObserver])
         end
 
   Given the above, we can now notify users during updates.
@@ -94,7 +101,7 @@ defmodule Observable.Repo do
         |> Repo.update_and_notify()
       end
 
-  All of the functionality above can be carried over with a `on_action(:delete, SubscribersObserver)`
+  All of the functionality above can be carried over with a `action(:delete, [SubscribersObserver])`
   observation and the `c:delete_and_notify/2` function being invoked.
   """
 
