@@ -1,4 +1,4 @@
-defmodule EctoObserver.MixProject do
+defmodule EctoObserverable.MixProject do
   use Mix.Project
 
   @version "0.3.1"
