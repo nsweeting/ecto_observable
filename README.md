@@ -39,21 +39,21 @@ defmodule SubscribersObserver do
   use Observable, :observer
 
   # Lets ignore posts that dont have any topics.
-  def handle_notify({:insert, %Post{topics: []}}) do
+  def handle_notify(:insert, {_repo, _old, %Post{topics: []}}) do
     :ok
   end
 
-  def handle_notify({:insert, %Post{topics: topics}}) do
+  def handle_notify(:insert, {_repo, _old, %Post{topics: topics}}) do
     # Do work required to inform subscribed users.
   end
 
   # Defined for the sake of example. Ignore me!
-  def handle_notify({:update, [old_post, new_post]}) do
+  def handle_notify(:update, {_repo, old, new}) do
     :ok
   end
 
   # Defined for the sake of example. Ignore me!
-  def handle_notify({:delete, post}) do
+  def handle_notify(:delete, {_repo, old, new}) do
     :ok
   end
 end
