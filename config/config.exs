@@ -6,7 +6,6 @@ if Mix.env() == :test do
   config :ecto_observable, ecto_repos: [Observable.TestRepo]
 
   config :ecto_observable, Observable.TestRepo,
-    adapter: Ecto.Adapters.Postgres,
     pool: Ecto.Adapters.SQL.Sandbox,
     database: "ecto_test",
     hostname: "localhost",

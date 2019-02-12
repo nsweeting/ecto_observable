@@ -3,16 +3,16 @@ defmodule Observable.TestObserver do
     quote do
       use Observable, :observer
 
-      def handle_notify({:insert, struct}) do
-        send(self(), {__MODULE__, :insert, struct})
+      def handle_notify(:insert, {repo, old, new}) do
+        {:ok, send(self(), {__MODULE__, :insert, repo, old, new})}
       end
 
-      def handle_notify({:update, [old_struct, new_struct]}) do
-        send(self(), {__MODULE__, :update, old_struct, new_struct})
+      def handle_notify(:update, {repo, old, new}) do
+        {:ok, send(self(), {__MODULE__, :update, repo, old, new})}
       end
 
-      def handle_notify({:delete, struct}) do
-        send(self(), {__MODULE__, :delete, struct})
+      def handle_notify(:delete, {repo, old, new}) do
+        {:ok, send(self(), {__MODULE__, :delete, repo, old, new})}
       end
     end
   end
@@ -24,4 +24,20 @@ end
 
 defmodule Observable.TestObserverTwo do
   use Observable.TestObserver
+end
+
+defmodule Observable.TestObserverThree do
+  use Observable, :observer
+
+  def handle_notify(_action, _data) do
+    raise RuntimeError, "uh oh"
+  end
+end
+
+defmodule Observable.TestObserverFour do
+  use Observable, :observer
+
+  def handle_notify(_action, _data) do
+    {:error, %Ecto.Changeset{}}
+  end
 end

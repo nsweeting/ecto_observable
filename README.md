@@ -12,19 +12,18 @@ The package can be installed by adding `ecto_observable` to your list of depende
 ```elixir
 def deps do
   [
-    {:ecto_observable, "~> 0.3.1"}
+    {:ecto_observable, "~> 0.4"}
   ]
 end
 ```
+
 ## Documentation
 
-See [HexDocs](https://hexdocs.pm/ecto_observable) for additional documentation.
+See [HexDocs](https://hexdocs.pm/ecto_observable) for detailed documentation.
 
-## Getting Started
+## Example
 
-Lets say we have a `Post` schema. Each post can have many topics. Users can subscribe to topics. Whenever a post is created, we are responsible for informing the subscribed users.
-
-Given the above, lets setup our new "observable" repo.
+To get started we must add observability to our repo:
 
 ```elixir
 defmodule Repo do
@@ -33,38 +32,34 @@ defmodule Repo do
 end
 ```
 
-We have defined our repo as normal - but with the addition of `use Observable.Repo`
-to bring in the required observable functionality.
-
-Lets create our new observer now.
+We can now create an observer:
 
 ```elixir
 defmodule SubscribersObserver do
   use Observable, :observer
 
   # Lets ignore posts that dont have any topics.
-  def handle_notify({:insert, %Post{topics: []}}) do
+  def handle_notify(:insert, {_repo, _old, %Post{topics: []}}) do
     :ok
   end
 
-  def handle_notify({:insert, %Post{topics: topics}}) do
+  def handle_notify(:insert, {_repo, _old, %Post{topics: topics}}) do
     # Do work required to inform subscribed users.
   end
 
   # Defined for the sake of example. Ignore me!
-  def handle_notify({:update, [old_post, new_post]}) do
+  def handle_notify(:update, {_repo, old, new}) do
     :ok
   end
 
   # Defined for the sake of example. Ignore me!
-  def handle_notify({:delete, post}) do
+  def handle_notify(:delete, {_repo, old, new}) do
     :ok
   end
 end
 ```
 
-Now that we have our observer set up, lets modify our Post schema to support
-notifying our observers.
+And modify our `Post` schema to notify our observer:
 
 ```elixir
 
@@ -86,8 +81,7 @@ defmodule Post do
 end
 ```
 
-Now that we are starting to use "observable" behaviour, we must modify the way
-in which we insert posts with our repo.
+Which allows us to use the notify functionality:
 
 ```elixir
 def create_post(params \\ %{}) do
@@ -97,18 +91,4 @@ def create_post(params \\ %{}) do
 end
 ```
 
-Our users will now be informed of any new posts with topics they are interested in!
-
-The same behaviour can be replicated for `:update` and `:delete` actions.
-
-```elixir
-Repo.update_and_notify(post)
-Repo.delete_and_notify(post)
-```
-
-Each of the new observer-based actions also has equivalent bang function available
-that will raise on error.
-
-```elixir
-Repo.insert_and_notify!(post)
-```
+Please see the [documentation](https://hexdocs.pm/ecto_observable) for more details.
