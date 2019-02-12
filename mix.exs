@@ -70,7 +70,7 @@ defmodule EctoObserverable.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:observable, git: "https://github.com/nsweeting/observable.git", branch: "v0.3"},
+      {:observable, "~> 0.3"},
       {:ecto_sql, "~> 3.0"},
       {:postgrex, "~> 0.14", only: :test},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false}
