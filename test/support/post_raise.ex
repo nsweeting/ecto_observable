@@ -1,4 +1,4 @@
-defmodule Observable.Post do
+defmodule Observable.PostRaise do
   use Ecto.Schema
   use Observable, :notifier
 
@@ -9,9 +9,9 @@ defmodule Observable.Post do
   end
 
   observations do
-    action(:insert, [Observable.TestObserverOne, Observable.TestObserverTwo])
-    action(:update, [Observable.TestObserverOne, Observable.TestObserverTwo])
-    action(:delete, [Observable.TestObserverOne, Observable.TestObserverTwo])
+    action(:insert, [Observable.TestObserverThree])
+    action(:update, [Observable.TestObserverThree])
+    action(:delete, [Observable.TestObserverThree])
   end
 
   @doc false

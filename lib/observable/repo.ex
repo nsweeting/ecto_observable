@@ -5,9 +5,13 @@ defmodule Observable.Repo do
   Observable functionality is defined as the ability to hook into the lifecyle
   of a struct to perform some kind of work based on the repo action performed.
 
-  Lets start of with an simple example. Lets say we have a `Post` schema. Each
-  post can have many topics. Users can subscribe to topics. Whenever a post is created,
-  we are responsible for informing the subscribed users.
+  ## Setup
+
+  Lets say we have a `Post` schema. Each post can have many topics. Users can
+  subscribe to topics. Whenever a post is created,  we are responsible for informing
+  the subscribed users.
+
+  ### Repo
 
   Given the above, lets setup our new "observable" repo.
 
@@ -19,20 +23,30 @@ defmodule Observable.Repo do
   We have defined our repo as normal - but with the addition of `use Observable.Repo`
   to bring in the required observable functionality.
 
+  ### Observer
+
   Lets create our new observer now.
 
       defmodule SubscribersObserver do
         use Observable, :observer
 
         # Lets ignore posts that dont have any topics.
-        def handle_notify({:insert, %Post{topics: []}}) do
+        def handle_notify(:insert, {_repo, _old, %Post{topics: []}) do
           :ok
         end
 
-        def handle_notify({:insert, %Post{topics: topics}}) do
-          # Do work required to inform subscribed users.
+        def handle_notify(:insert, {_repo, _old, %Post{topics: topics}}) do
+          # Do work required to inform subscribed users
         end
       end
+
+  The response given by an observer must be one of three formats:
+
+  * `:ok` - typically used when ignoring a notification.
+  * `{:ok, result}` - a valid operation.
+  * `{:error, result}` - an invalid operation that will trigger a transaction rollback.
+
+  ### Schema
 
   Now that we have our observer set up, lets modify our Post schema to support
   notifying our observers.
@@ -59,6 +73,8 @@ defmodule Observable.Repo do
 
       action(:delete, [ObserverOne, ObserverTwo])
 
+  ### Usage
+
   Now that we are starting to use "observable" behaviour, we must modify the way
   in which we insert posts with our repo.
 
@@ -68,23 +84,25 @@ defmodule Observable.Repo do
         |> Repo.insert_and_notify()
       end
 
-  Instead of the normal `Ecto.Repo.insert/2` function being called, we instead
-  use `c:insert_and_notify/2`. This performs the exact same action as `Ecto.Repo.insert/2`
-  (and returns the same results). The only change is that upon successful insertion
-  to the database, our observers have their callbacks invoked.
+  Instead of the normal `c:Ecto.Repo.insert/2` function being called, we instead
+  use `c:insert_and_notify/3`. This performs the exact same action as `c:Ecto.Repo.insert/2`
+  (and returns the same results). The only change is the insert operation is done
+  using an `Ecto.Multi` operation. Each observer is then added to the multi. The final multi
+  is passed to a transaction. Any observer that fails, will fail the entire
+  transaction.
 
   Lets say we want to let our users know when a posts topic changes to to something
   they have subscribed to. We must modify our observer for this functionality.
 
-        def handle_notify({:update, [%Post{topics: old_topics}, %Post{topics: new_topics}]})
-            when old_topics != new_topics do
-          # Get any additional topics and inform subscribed users.
-        end
+      def handle_notify(:update, {_repo, %Post{topics: old_topics}, %Post{topics: new_topics}})
+          when old_topics != new_topics do
+        # Get any additional topics and inform subscribed users.
+      end
 
-        # Define a "catch all"
-        def handle_notify(_) do
-          :ok
-        end
+      # Define a "catch all"
+      def handle_notify(_action, _data) do
+        :ok
+      end
 
   Now, lets modify our schema to reflect the updates to our observer.
 
@@ -102,114 +120,121 @@ defmodule Observable.Repo do
       end
 
   All of the functionality above can be carried over with a `action(:delete, [SubscribersObserver])`
-  observation and the `c:delete_and_notify/2` function being invoked.
+  observation and the `c:delete_and_notify/3` function being invoked.
   """
+
+  alias Ecto.Multi
 
   @doc """
   Inserts a struct defined via `Ecto.Schema` or a changeset and informs observers.
 
-  Upon success, the newly insterted struct is passed to any observer
-  that was assigned to observe the `:insert` action for the schema.
+  Upon success, the repo, old struct and new struct are passed in the form -
+  `{repo, old, new}` - to any observer that was assigned to observe the `:insert`
+  action for the schema.
 
   This will return whatever response that `c:Ecto.Repo.insert/2` returns. Please
   see its documentation for further details.
+
+  The `update_opts` are the options passed to the `Ecto.Multi.insert/2` operation.
+  Since the entire operation is wrapped in a transaction, we can also pass
+  `transaction_opts` which will be used with `c:Ecto.Repo.transaction/2`.
+
+  Any observer must return a valid response as detailed in the "Observer" section above.
   """
   @callback insert_and_notify(
               struct_or_changeset :: Ecto.Schema.t() | Ecto.Changeset.t(),
-              opts :: Keyword.t()
+              insert_opts :: Keyword.t(),
+              transaction_opts :: Keyword.t()
             ) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
-
-  @doc """
-  Same as `c:insert_and_notify/2` but returns the struct or raises if the changeset is invalid.
-  """
-  @callback insert_and_notify!(
-              struct_or_changeset :: Ecto.Schema.t() | Ecto.Changeset.t(),
-              opts :: Keyword.t()
-            ) :: Ecto.Schema.t() | no_return
 
   @doc """
   Updates a changeset using its primary key and informs observers.
 
-  Upon success, the old struct and updated struct are passed in list form -
-  `[old_struct, updated_struct]` - to any observer that was assigned to observe
-  the `:update` action for the schema.
+  Upon success, the repo, old struct and new struct are passed in the form -
+  `{repo, old, new}` - to any observer that was assigned to observe the `:update`
+  action for the schema.
 
   This will return whatever response that `c:Ecto.Repo.update/2` returns. Please
   see its documentation for further details.
-  """
-  @callback update_and_notify(changeset :: Ecto.Changeset.t(), opts :: Keyword.t()) ::
-              {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
 
-  @doc """
-  Same as `c:update_and_notify/2` but returns the struct or raises if the changeset is invalid.
+  The `update_opts` are the options passed to the `Ecto.Multi.update/3` operation.
+  Since the entire operation is wrapped in a transaction, we can also pass
+  `transaction_opts` which will be used with `c:Ecto.Repo.transaction/2`.
+
+  Any observer must return a valid response as detailed in the "Observer" section above.
   """
-  @callback update_and_notify!(changeset :: Ecto.Changeset.t(), opts :: Keyword.t()) ::
-              Ecto.Schema.t() | no_return
+  @callback update_and_notify(
+              changeset :: Ecto.Changeset.t(),
+              update_opts :: Keyword.t(),
+              transaction_opts :: Keyword.t()
+            ) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
 
   @doc """
   Deletes a struct using its primary key and informs observers.
 
-  Upon success, the deleted struct is passed to any observer
-  that was assigned to observe the `:delete` action for the schema.
+  Upon success, the repo, old struct and new struct are passed in the form -
+  `{repo, old, new}` - to any observer that was assigned to observe the `:delete`
+  action for the schema.
 
   This will return whatever response that `c:Ecto.Repo.delete/2` returns. Please
   see its documentation for further details.
+
+  The `delete_opts` are the options passed to the `Ecto.Multi.delete/2` operation.
+  Since the entire operation is wrapped in a transaction, we can also pass
+  `transaction_opts` which will be used with `c:Ecto.Repo.transaction/2`.
+
+  Any observer must return a valid response as detailed in the "Observer" section above.
   """
   @callback delete_and_notify(
               struct_or_changeset :: Ecto.Schema.t() | Ecto.Changeset.t(),
-              opts :: Keyword.t()
+              delete_opts :: Keyword.t(),
+              transaction_opts :: Keyword.t()
             ) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
-
-  @doc """
-  Same as `c:delete_and_notify/2` but returns the struct or raises if the changeset is invalid.
-  """
-  @callback delete_and_notify!(
-              struct_or_changeset :: Ecto.Schema.t() | Ecto.Changeset.t(),
-              opts :: Keyword.t()
-            ) :: Ecto.Schema.t() | no_return
 
   defmacro __using__(_opts) do
     quote do
       @behaviour Observable.Repo
 
-      def insert_and_notify(struct, opts \\ []) do
-        with {:ok, struct} <- insert(struct, opts) do
-          Observable.notify(struct, :insert)
-          {:ok, struct}
-        end
+      def insert_and_notify(changeset_or_schema, insert_opts \\ [], transaction_opts \\ []) do
+        multi = Multi.new() |> Multi.insert(:data, changeset_or_schema, insert_opts)
+        Observable.Repo.notify(__MODULE__, :insert, changeset_or_schema, multi, transaction_opts)
       end
 
-      def insert_and_notify!(struct, opts \\ []) do
-        struct = insert!(struct, opts)
-        Observable.notify(struct, :insert)
-        struct
+      def update_and_notify(changeset, update_opts \\ [], transaction_opts \\ []) do
+        multi = Multi.new() |> Multi.update(:data, changeset, update_opts)
+        Observable.Repo.notify(__MODULE__, :update, changeset, multi, transaction_opts)
       end
 
-      def update_and_notify(struct, opts \\ []) do
-        with {:ok, new_struct} <- update(struct, opts) do
-          Observable.notify([struct.data, new_struct], :update)
-          {:ok, new_struct}
-        end
+      def delete_and_notify(changeset_or_schema, delete_opts \\ [], transaction_opts \\ []) do
+        multi = Multi.new() |> Multi.delete(:data, changeset_or_schema, delete_opts)
+        Observable.Repo.notify(__MODULE__, :delete, changeset_or_schema, multi, transaction_opts)
+      end
+    end
+  end
+
+  @doc false
+  def notify(repo, action, changeset_or_schema, multi, opts \\ []) do
+    old_data =
+      case changeset_or_schema do
+        %Ecto.Changeset{data: data} -> data
+        other -> other
       end
 
-      def update_and_notify!(struct, opts \\ []) do
-        new_struct = update!(struct, opts)
-        Observable.notify([struct.data, new_struct], :update)
-        new_struct
-      end
+    multi =
+      old_data.__struct__
+      |> Observable.observers(action)
+      |> Enum.reduce(multi, fn observer, multi ->
+        Multi.run(multi, :"#{observer}", fn repo, %{data: new_data} ->
+          case Observable.notify_one(observer, action, {repo, old_data, new_data}) do
+            :ok -> {:ok, nil}
+            result -> result
+          end
+        end)
+      end)
 
-      def delete_and_notify(struct, opts \\ []) do
-        with {:ok, struct} <- delete(struct, opts) do
-          Observable.notify(struct, :delete)
-          {:ok, struct}
-        end
-      end
-
-      def delete_and_notify!(struct, opts \\ []) do
-        struct = delete!(struct, opts)
-        Observable.notify(struct, :delete)
-        struct
-      end
+    case repo.transaction(multi, opts) do
+      {:ok, %{data: data}} -> {:ok, data}
+      {:error, _, error_value, _} -> {:error, error_value}
     end
   end
 end

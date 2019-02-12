@@ -1,13 +1,13 @@
-defmodule EctoObserver.MixProject do
+defmodule EctoObserverable.MixProject do
   use Mix.Project
 
-  @version "0.3.1"
+  @version "0.4.0"
 
   def project do
     [
       app: :ecto_observable,
       version: @version,
-      elixir: "~> 1.6",
+      elixir: "~> 1.7",
       elixirc_paths: elixirc_paths(Mix.env()),
       aliases: aliases(),
       description: description(),
@@ -70,10 +70,10 @@ defmodule EctoObserver.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:observable, "~> 0.2.0"},
-      {:ecto, "~> 2.1", only: [:dev, :test]},
-      {:postgrex, "~> 0.13.0", only: :test},
-      {:ex_doc, ">= 0.0.0", only: :dev}
+      {:observable, git: "https://github.com/nsweeting/observable.git", branch: "v0.3"},
+      {:ecto_sql, "~> 3.0"},
+      {:postgrex, "~> 0.14.0", only: :test},
+      {:ex_doc, "~> 0.19", only: :dev, runtime: false}
     ]
   end
 end
